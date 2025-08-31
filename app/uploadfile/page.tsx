@@ -6,11 +6,12 @@ import {
     upload,
 } from "@imagekit/next";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-interface UploadResponse{
-    url:string,
-    fileId:string,
-    name:string,
+interface UploadResponse {
+    url: string,
+    fileId: string,
+    name: string,
 }
 
 interface FileUploadProps {
@@ -26,6 +27,7 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const router = useRouter();
     const fileValidator = (file: File) => {
         if (FileType === 'video') {
             if (!file.type.startsWith('video/')) {
@@ -47,39 +49,40 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
         setUploading(true);
         setError(null);
         try {
-            const authResponse = await axios.get('api/auth/imagekit-auth');
+            const authResponse = await axios.get('http://localhost:3000/api/auth/imagekit-auth');
             const auth = authResponse.data;
-            
+
             // Debug logging
             console.log('Auth response:', auth);
-            
+
             if (!auth.token || !auth.signature || !auth.expire) {
                 throw new Error('Missing authentication parameters');
             }
-            
-           const res= await upload({
-            file,
-            fileName: file.name, 
-            publicKey:process.env.NEXT_PUBLIC_PUBLIC_KEY!,
-            expire:auth.expire,
-            token:auth.token,
-            signature:auth.signature,
-            onProgress: (event) => {
-                if(event.lengthComputable && onProgress){
-                    const percent=(event.loaded/event.total)*100;
-                    onProgress(Math.round(percent));
-                }
-                        },
-        })
-        onSuccess(res as UploadResponse);
+
+            const res = await upload({
+                file,
+                fileName: file.name,
+                publicKey: process.env.NEXT_PUBLIC_PUBLIC_KEY!,
+                expire: auth.expire,
+                token: auth.token,
+                signature: auth.signature,
+                onProgress: (event) => {
+                    if (event.lengthComputable && onProgress) {
+                        const percent = (event.loaded / event.total) * 100;
+                        onProgress(Math.round(percent));
+                    }
+                },
+            })
+            console.log(`response is:-> ${res}`);
+            router.push('/');
 
         } catch (error) {
 
-            console.error("Upload fialed",error);
-        }finally{
+            console.error("Upload fialed", error);
+        } finally {
             setUploading(false);
         }
-        
+
     }
 
     return (
@@ -90,9 +93,9 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
                 onChange={handleFileChange}
             />
             {uploading && (
-                <span>
+                <div>
                     Loading...
-                </span>
+                </div>
             )}
             <div>{error}</div>
             <Button type="submit">Upload Vedio</Button>

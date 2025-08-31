@@ -47,7 +47,7 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
         setUploading(true);
         setError(null);
         try {
-            const authResponse = await axios.get('api/auth/imagekit-auth');
+            const authResponse = await axios.get('http://localhost:3000/api/auth/vedio');
             const auth = authResponse.data;
             
             // Debug logging
@@ -90,9 +90,9 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
                 onChange={handleFileChange}
             />
             {uploading && (
-                <span>
+                <div>
                     Loading...
-                </span>
+                </div>
             )}
             <div>{error}</div>
             <Button type="submit">Upload Vedio</Button>
