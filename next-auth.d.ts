@@ -6,8 +6,21 @@ declare module "next-auth" {
    */
   interface Session {
     user: {
-      /** The user's postal address. */
-      address: string
+      id: string
+      email: string
+      name?: string | null
+      image?: string | null
     }
+  }
+
+  interface User {
+    id: string
+    email: string
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string
   }
 }
