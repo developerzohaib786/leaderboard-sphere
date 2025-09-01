@@ -47,7 +47,7 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
         setUploading(true);
         setError(null);
         try {
-            const authResponse = await axios.get('http://localhost:3000/api/auth/vedio');
+            const authResponse = await axios.get('http://localhost:3000/api/auth/imagekit-auth');
             const auth = authResponse.data;
             
             // Debug logging
@@ -72,6 +72,7 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
                         },
         })
         onSuccess(res as UploadResponse);
+        console.log('REsponse is->',res);
 
         } catch (error) {
 

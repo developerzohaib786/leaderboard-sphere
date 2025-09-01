@@ -1,107 +1,186 @@
-"use client"
+"use client";
 
-import axios from "axios";
-import { Button } from "@/components/ui/button";
-import {
-    upload,
-} from "@imagekit/next";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import FileUpload from "../components/FileUpload";
+import ProgressBar from "react-bootstrap/ProgressBar";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 
-interface UploadResponse {
-    url: string,
-    fileId: string,
-    name: string,
+interface Transformation {
+    height: number;
+    width: number;
+    quality: number;
 }
 
-interface FileUploadProps {
-    onSuccess: (res: UploadResponse) => void,
-    onProgress?: (progress: number) => void,
-    FileType: 'image' | 'video',
+interface PostData {
+    title: string;
+    description: string;
+    vedioURL: string;
+    thumbnailURL: string;
+    transformation: Transformation;
 }
 
+export default function PostMaker() {
+    const [formData, setFormData] = useState<PostData>({
+        title: "",
+        description: "",
+        vedioURL: "",
+        thumbnailURL: "",
+        transformation: { height: 1920, width: 1080, quality: 80 },
+    });
 
-
-const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
-
-    const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+    const [videoProgress, setVideoProgress] = useState(0);
+    const [thumbProgress, setThumbProgress] = useState(0);
     const router = useRouter();
-    const fileValidator = (file: File) => {
-        if (FileType === 'video') {
-            if (!file.type.startsWith('video/')) {
-                setError('Please Upload a valid video file')
-            }
-        };
-        if (file.size > 30 * 1024 * 1024) {
-            setError('Please upload file less than 30MB');
-        }
-        return true;
+
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleVideoSuccess = (res: { url: string }) => {
+        console.log("Video uploaded successfully:", res);
+        setFormData((prev) => ({ ...prev, vedioURL: res.url }));
+    };
 
-        const file = e.target.files?.[0];
-        console.log(`Uploaded file is: ${file}`);
+    const handleThumbnailSuccess = (res: { url: string }) => {
+        console.log("Thumbnail uploaded successfully:", res);
+        setFormData((prev) => ({ ...prev, thumbnailURL: res.url }));
+    };
 
-        if (!file || !fileValidator(file)) return;
-        setUploading(true);
-        setError(null);
-        try {
-            const authResponse = await axios.get('http://localhost:3000/api/auth/imagekit-auth');
-            const auth = authResponse.data;
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-            // Debug logging
-            console.log('Auth response:', auth);
-
-            if (!auth.token || !auth.signature || !auth.expire) {
-                throw new Error('Missing authentication parameters');
-            }
-
-            const res = await upload({
-                file,
-                fileName: file.name,
-                publicKey: process.env.NEXT_PUBLIC_PUBLIC_KEY!,
-                expire: auth.expire,
-                token: auth.token,
-                signature: auth.signature,
-                onProgress: (event) => {
-                    if (event.lengthComputable && onProgress) {
-                        const percent = (event.loaded / event.total) * 100;
-                        onProgress(Math.round(percent));
-                    }
-                },
-            })
-            console.log(`response is:-> ${res}`);
-            router.push('/');
-
-        } catch (error) {
-
-            console.error("Upload fialed", error);
-        } finally {
-            setUploading(false);
+        if (
+            !formData.title ||
+            !formData.description ||
+            !formData.vedioURL ||
+            !formData.thumbnailURL
+        ) {
+            setError("All fields are required!");
+            return;
         }
 
-    }
+        setError(null);
+        console.log("Form data is this✅:", formData);
+
+
+
+        try {
+            const response = await axios.post('http://localhost:3000/api/auth/vedio',formData, {
+            headers: {
+                'Content-Type': 'application/json',
+            }});
+            router.push('/');
+            alert("Post Created ✅:");
+            console.log("Post Created ✅:", formData);
+        } catch (error) {
+            console.error('Axios error', error)
+        }
+
+    };
 
     return (
-        <>
-            <input
-                type="file"
-                accept={FileType === 'video' ? 'video/*' : 'image/*'}
-                onChange={handleFileChange}
-            />
-            {uploading && (
+        <div className="max-w-xl mx-auto p-6 bg-white rounded-2xl shadow-md">
+            <h2 className="text-2xl font-bold mb-4">Create New Post</h2>
+            {error && <p className="text-red-500 mb-3">{error}</p>}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                    name="title"
+                    placeholder="Post Title"
+                    value={formData.title}
+                    onChange={handleChange}
+                />
+
+                <input
+                    type="textarea"
+                    name="description"
+                    placeholder="Post Description"
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+
+                {/* Video Upload */}
                 <div>
-                    Loading...
+                    <label className="block font-medium mb-1">Upload Video</label>
+                    <FileUpload
+                        onSuccess={handleVideoSuccess}
+                        onProgress={setVideoProgress}
+                        FileType="video"
+                    />
+                    {videoProgress > 0 && (
+                        <ProgressBar now={videoProgress} label={`${videoProgress}%`} />
+                    )}
                 </div>
-            )}
-            <div>{error}</div>
-            <Button type="submit">Upload Vedio</Button>
 
-        </>
+                {/* Thumbnail Upload */}
+                <div>
+                    <label className="block font-medium mb-1">Upload Thumbnail</label>
+                    <FileUpload
+                        onSuccess={handleThumbnailSuccess}
+                        onProgress={setThumbProgress}
+                        FileType="image"
+                    />
+                    {thumbProgress > 0 && (
+                        <ProgressBar now={thumbProgress} label={`${thumbProgress}%`} />
+                    )}
+                </div>
+
+                {/* Transformation Fields */}
+                <div className="grid grid-cols-3 gap-4">
+                    <Input
+                        type="number"
+                        name="height"
+                        placeholder="Height"
+                        value={formData.transformation.height}
+                        onChange={(e) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                transformation: { ...prev.transformation, height: Number(e.target.value) },
+                            }))
+                        }
+                    />
+
+                    <Input
+                        type="number"
+                        name="width"
+                        placeholder="Width"
+                        value={formData.transformation.width}
+                        onChange={(e) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                transformation: { ...prev.transformation, width: Number(e.target.value) },
+                            }))
+                        }
+                    />
+
+                    <Input
+                        type="number"
+                        name="quality"
+                        placeholder="Quality (1-100)"
+                        min={1}
+                        max={100}
+                        value={formData.transformation.quality}
+                        onChange={(e) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                transformation: { ...prev.transformation, quality: Number(e.target.value) },
+                            }))
+                        }
+                    />
+                </div>
+
+
+                <Button type="submit" className="w-full">
+                    Create Post
+                </Button>
+            </form>
+        </div>
     );
-};
-
-export default FileUpload;
+}
