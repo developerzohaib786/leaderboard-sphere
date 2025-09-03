@@ -1,22 +1,38 @@
-import { Video } from '@imagekit/next';
-import axios from "axios";
-import Image from "next/image";
+'use client';
+import VideoFeed from './components/VedioShow';
+import Navbar from './components/Navbar';
+import { useEffect,useState } from 'react';
+import { signOut } from 'next-auth/react';
 
-export default async function Home() {
+export default function Home() {
+ const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const res = await axios.get('http://localhost:3000/api/auth/vedio');
-  const data = res.data; // Change this line
+  const handleLogout = async () => {
+    try {
+      await signOut({
+        callbackUrl: '/login',
+        redirect: true
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  }
+
+
+  useEffect(() => {
+    const checkLoggedIn = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+    };
+    
+    checkLoggedIn();
+  }, []);
 
   return (
     <section>
-      <Video
-        urlEndpoint="https://ik.imagekit.io/bxidf6rce"
-        src="https://ik.imagekit.io/bxidf6rce/BIG___Bjarke_Ingels_Group_-_Google_Chrome_2025-08-22_16-42-30_3Rif-0A6iS.mp4?updatedAt=1756653215551"
-        controls
-        width={500}
-        height={500}
-      />    
-      </section>
+      <Navbar isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+      <VideoFeed />
+    </section>
   );
 }
 
