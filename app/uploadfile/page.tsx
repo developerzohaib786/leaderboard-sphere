@@ -97,8 +97,8 @@ export default function PostMaker() {
                         {/* Basic Information */}
                         <div className="space-y-4">
                             <div className="text-center">
-                                <h2 className="text-3xl font-bold text-gray-900 mb-2">Create New Post</h2>
-                                <p className="text-gray-600">Upload your video content and details</p>
+                                <h2 className="text-3xl font-bold text-gray-900 mb-2">Create New Project Showcase</h2>
+                                <p className="text-gray-600">Upload your Project content and details</p>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">

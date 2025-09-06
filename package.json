@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -19,7 +19,8 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.542.0",
     "mongoose": "^8.17.0",
-    "next": "15.4.5",
+    "motion": "^12.23.12",
+    "next": "^15.5.2",
     "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-bootstrap": "^2.10.10",

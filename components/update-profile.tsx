@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export function LoginForm({
+export default function UpdateForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
@@ -25,6 +25,8 @@ export function LoginForm({
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [Name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const [isopen, setisopen] = useState(false);
   const router = useRouter();
 
@@ -32,7 +34,7 @@ export function LoginForm({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('it is running...')
-    console.log({email,password,confirmPassword});
+    console.log({ email, password, confirmPassword });
 
     if (password != confirmPassword) {
       setisopen(true);
@@ -47,7 +49,7 @@ export function LoginForm({
       if (!res.status.toString().startsWith("2")) {
         throw new Error(res.data.error || 'Form Validation Failed!');
       };
-      router.push('/login');
+      router.push('/');
     } catch (error) {
       console.error(`The Server error is: ${error}`);
     }
@@ -65,20 +67,28 @@ export function LoginForm({
         </div>
         <div className="grid gap-6">
           <div className="grid gap-3">
-            <Label htmlFor="email">Email</Label>
-            <Input value={email} onChange={(e) => setemail(e.target.value)} id="email" type="email" placeholder="m@example.com" required />
+            <Label htmlFor="email">Name</Label>
+            <Input
+              id="Name"
+              type="text"
+              placeholder="Enter your name"
+              value={Name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
-          <div className="grid gap-3">
-            <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
-            </div>
-            <Input value={password} onChange={(e) => setpassword(e.target.value)} id="password" type="password" required />
-          </div>
-          <div className="grid gap-3">
-            <div className="flex items-center">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-            </div>
-            <Input onChange={(e) => setConfirmPassword(e.target.value)} id="confirmPassword" type="password" value={confirmPassword} required />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description *
+            </label>
+            <textarea
+              name="bio"
+              placeholder="Tell us about yourself"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={4}
+              className="w-full p-3 border border-gray-300 rounded-md resize-none focus:ring-2  focus:border-transparent"
+            />
           </div>
 
           <Button type="submit" className="w-full">

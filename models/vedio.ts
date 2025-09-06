@@ -15,6 +15,7 @@ export interface ivedio{
     _id?:mongoose.Types.ObjectId;
     title:string;
     description:string;
+    like: mongoose.Types.ObjectId[]; 
     vedioURL:string;
     thumbnailURL:string;
     controls?:boolean;
@@ -28,6 +29,7 @@ const vedioSchema=new Schema<ivedio>(
     vedioURL:{type:String, required:true, },
     thumbnailURL:{type:String, required:true, },
     controls:{type:Boolean,default:true},
+    like: { type: [mongoose.Schema.Types.ObjectId], default: [] },
     transformation:{
         height:{type:Number,default:vedio_dimensions},
         width:{type:Number,default:vedio_dimensions},

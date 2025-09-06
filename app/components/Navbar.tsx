@@ -12,8 +12,8 @@ export default function Navbar({ isLoggedIn, onLogout }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-  <section className="relative">
-      <nav className="bg-blue-600 text-white shadow-md sticky z-1000 w-screen">
+  <section className="relative overflow-x-hidden">
+      <nav className="bg-white  backdrop-blur-md text-black shadow-md sticky z-1000 w-screen">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         {/* Logo */}
         <Link href="/" className="text-xl font-bold tracking-wide">
@@ -22,10 +22,10 @@ export default function Navbar({ isLoggedIn, onLogout }: NavbarProps) {
 
         {/* Mid Links */}
         <div className="hidden md:flex space-x-6">
-          <Link href="/" className="hover:text-gray-200 transition">
+          <Link href="/" className="hover:text-gray-600 transition font-medium">
             Home
           </Link>
-          <Link href="/upload" className="hover:text-gray-200 transition">
+          <Link href="/upload" className="hover:text-gray-600 transition font-medium  ">
             Upload Video
           </Link>
         </div>

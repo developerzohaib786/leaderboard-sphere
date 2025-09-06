@@ -5,10 +5,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
     try {
-        const { email, password } = await request.json();
+        const { email, password, bio, profileImageURL,Name } = await request.json();
 
-        if (!email || !password) {
-            console.log('Body is missing email or passowrd')
+        if (!email || !password ) {
+            console.log('Body is missing Name, email, passowrd, or Biography')
             return NextResponse.json({
                 error: "All fields are important!"
             }, { status: 400 })
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 })
         }
         await User.create({
-            email, password
+            email, password, bio, profileImageURL, Name
         });
         console.log('User created successfuly');
         return NextResponse.json({

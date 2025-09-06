@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Avatar from '@/public/default-image.png';
+import Image from "next/image";
 
 interface Transformation {
     height: number;
@@ -22,14 +24,42 @@ interface VideoData {
     __v: number;
 }
 
+
+
 export default function VideoFeed() {
     const [videos, setVideos] = useState<VideoData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchVideos();
-    }, []);
+    // useEffect(() => {
+    //     const fetchUserData = async () => {
+    //         try {
+    //             const response = await axios.post('http://localhost:3000/api/auth/user/7782438243');
+
+    //             // Alert the response data
+    //             alert(JSON.stringify(response.data, null, 2));
+
+    //             // Optional: Log to console for better debugging
+    //             console.log('User data:', response.data);
+
+    //         } catch (error) {
+    //             console.error('Error fetching user:', error);
+
+    //             if (axios.isAxiosError(error)) {
+    //                 // Alert the error message
+    //                 alert(`Error: ${error.response?.data?.error || error.message}`);
+    //             } else {
+    //                 alert('An unexpected error occurred');
+    //             }
+    //         }
+    //     };
+
+    //     fetchUserData();
+    // }, []);
+
+    // useEffect(() => {
+    //     fetchVideos();
+    // }, []);
 
     const fetchVideos = async () => {
         try {
@@ -67,9 +97,25 @@ export default function VideoFeed() {
     if (error) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex items-center gap-4 p-6">
+                    <div>
+                        <Image
+                            className="rounded-full size-15 bg-transparent"
+                            src={Avatar}
+                            alt="User"
+                            fill={false}
+                        />
+                    </div>
+
+                    {/* Text content stacked in column */}
+                    <div className="flex flex-col">
+                        <span className="font-semibold">Name</span>
+                        <span className="text-sm text-gray-600">Bio</span>
+                    </div>
+                </div>
                 <div className="text-center">
                     <p className="text-red-600 text-lg">{error}</p>
-                    <button 
+                    <button
                         onClick={fetchVideos}
                         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
@@ -84,8 +130,8 @@ export default function VideoFeed() {
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Video Feed</h1>
-                    <p className="text-gray-600">Watch and enjoy our latest video content</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">See the Talent of Pakistan</h1>
+                    <p className="text-gray-600">The biggest Tech Projects are listed on LeaderBoard Sphere</p>
                 </div>
 
                 {videos.length === 0 ? (
@@ -95,56 +141,64 @@ export default function VideoFeed() {
                 ) : (
                     <div className="space-y-8">
                         {videos.map((video) => (
-                            <div 
-                                key={video._id} 
-                                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                            <div
+                                key={video._id}
+                                className="bg-white overflow-hidden duration-300"
                             >
                                 {/* Video Container */}
                                 <div className="relative">
+                                    {/* User Info display */}
+                                    <div className="flex items-center gap-4 p-6">
+                                        <div>
+                                            <Image
+                                                className="rounded-full size-15 bg-transparent"
+                                                src={Avatar}
+                                                alt="User"
+                                                fill={false}
+                                            />
+                                        </div>
+
+                                        {/* Text content stacked in column */}
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold">Name</span>
+                                            <span className="text-sm text-gray-600">Bio</span>
+                                            <span>Posted: {formatDate(video.createdAt)}</span>
+                                        </div>
+                                    </div>
                                     {/* Video */}
                                     <div className="relative w-full bg-black">
                                         <video
                                             controls={video.controls}
                                             poster={video.thumbnailURL}
-                                            className="w-full h-auto max-h-96 object-contain"
+                                            className="w-full h-auto max-h-96 object-cover"
                                             preload="metadata"
                                         >
                                             <source src={video.vedioURL} type="video/mp4" />
                                             Your browser does not support the video tag.
                                         </video>
-                                        
+
                                         {/* Overlay Content on Video (Optional) */}
-                                        <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-md">
+                                        <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-3 py-1">
                                             <span className="text-sm font-medium">HD</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Title */}
-                                <div className="px-6 pt-6">
+                                <div className="px-2 pt-1">
                                     <h2 className="text-2xl font-bold text-gray-900">
                                         {video.title}
                                     </h2>
                                 </div>
 
                                 {/* Description and Metadata */}
-                                <div className="px-6 py-6">
+                                <div className="px-2 pb-1">
                                     <div className="mb-4">
                                         <p className="text-gray-700 text-base leading-relaxed">
                                             {video.description}
                                         </p>
                                     </div>
 
-                                    {/* Video Info */}
-                                    <div className="border-t pt-4">
-                                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                                            <span>Quality: {video.transformation.quality}%</span>
-                                            <span>•</span>
-                                            <span>Resolution: {video.transformation.width}x{video.transformation.height}</span>
-                                            <span>•</span>
-                                            <span>Posted: {formatDate(video.createdAt)}</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         ))}

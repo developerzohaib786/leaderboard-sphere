@@ -90,13 +90,7 @@ const FileUpload = ({ onSuccess, onProgress, FileType }: FileUploadProps) => {
                 accept={FileType === 'video' ? 'video/*' : 'image/*'}
                 onChange={handleFileChange}
             />
-            {uploading && (
-                <div>
-                    Loading...
-                </div>
-            )}
             <div>{error}</div>
-            <Button type="submit">Upload Vedio</Button>
 
         </>
     );
