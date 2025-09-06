@@ -162,7 +162,7 @@ export default function VideoFeed() {
                                         {/* Text content stacked in column */}
                                         <div className="flex flex-col">
                                             <span className="font-semibold">{user?.Name ? user.Name : (user?.email)}</span>
-                                            <span className={twMerge("text-sm text-gray-600", !user?.bio) && 'hidden'}>{user?.bio}</span>
+                                            <span className={twMerge("text-sm text-gray-600", !user?.bio&& 'hidden')}>{user?.bio}</span>
                                             <span>Posted: {formatDate(video.createdAt)}</span>
                                         </div>
                                     </div>
