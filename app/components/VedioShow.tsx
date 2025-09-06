@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Avatar from '@/public/default-image.png';
 import Image from "next/image";
+import { twMerge } from "tailwind-merge";
 
 interface Transformation {
     height: number;
@@ -24,42 +25,42 @@ interface VideoData {
     __v: number;
 }
 
+interface UserData {
+    _id?: string;
+    Name?: string;
+    email: string;
+    bio?: string;
+    profileImageURL?: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 
 
 export default function VideoFeed() {
     const [videos, setVideos] = useState<VideoData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.post('http://localhost:3000/api/auth/user/7782438243');
+                // Optional: Log to console for better debugging
+                const res=response.data;
+                setUser(res);
+                console.log('User data:', user);
 
-    // useEffect(() => {
-    //     const fetchUserData = async () => {
-    //         try {
-    //             const response = await axios.post('http://localhost:3000/api/auth/user/7782438243');
+            } catch (error) {
+                console.error('Error fetching user:', error);
+            }
+        };
+        fetchUserData();
+    }, []);
 
-    //             // Alert the response data
-    //             alert(JSON.stringify(response.data, null, 2));
-
-    //             // Optional: Log to console for better debugging
-    //             console.log('User data:', response.data);
-
-    //         } catch (error) {
-    //             console.error('Error fetching user:', error);
-
-    //             if (axios.isAxiosError(error)) {
-    //                 // Alert the error message
-    //                 alert(`Error: ${error.response?.data?.error || error.message}`);
-    //             } else {
-    //                 alert('An unexpected error occurred');
-    //             }
-    //         }
-    //     };
-
-    //     fetchUserData();
-    // }, []);
-
-    // useEffect(() => {
-    //     fetchVideos();
-    // }, []);
+    useEffect(() => {
+        fetchVideos();
+    }, []);
 
     const fetchVideos = async () => {
         try {
@@ -152,7 +153,7 @@ export default function VideoFeed() {
                                         <div>
                                             <Image
                                                 className="rounded-full size-15 bg-transparent"
-                                                src={Avatar}
+                                                src={user?.profileImageURL ? user.profileImageURL : (Avatar)}
                                                 alt="User"
                                                 fill={false}
                                             />
@@ -160,8 +161,8 @@ export default function VideoFeed() {
 
                                         {/* Text content stacked in column */}
                                         <div className="flex flex-col">
-                                            <span className="font-semibold">Name</span>
-                                            <span className="text-sm text-gray-600">Bio</span>
+                                            <span className="font-semibold">{user?.Name ? user.Name : (user?.email)}</span>
+                                            <span className={twMerge("text-sm text-gray-600", !user?.bio) && 'hidden'}>{user?.bio}</span>
                                             <span>Posted: {formatDate(video.createdAt)}</span>
                                         </div>
                                     </div>
