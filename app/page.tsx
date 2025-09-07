@@ -6,10 +6,9 @@ import Navbar from './components/NavbarComponent';
 export default function Home() {
 
   return (
-    <section className='mt-[90px] flex items-center justify-center flex-col'>
+    <section className='flex items-center justify-center flex-col bg-black min-h-screen'>
       <Navbar/>
       <VideoFeed />
     </section>
   );
 }
-

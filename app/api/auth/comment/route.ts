@@ -116,9 +116,9 @@ export async function POST(request: NextRequest) {
         await connectToDatabase();
         const body: icomment = await request.json();
         if (
-            !body.content ||
-            !body.vedioId ||
-            !body.createdBy
+            !body.review ||
+            !body.videoId ||
+            !body.userId
         ) {
             return NextResponse.json({
                 error: 'Missing required fields'
