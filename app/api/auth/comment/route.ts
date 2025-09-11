@@ -1,110 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
 import Comment, { icomment } from "@/models/comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb"
+import mongoose from "mongoose";
 
-
-// export const POST = async (req) => {    
-//     try {
-//         await connectDb();
-//         const { postid, text , parentid ,userid ,comId} = await req.json();
-//         if (!postid) {
-//             return NextResponse.json({ error: "postid is required" }, { status: 400 });
-//         }
-//         if (!mongoose.Types.ObjectId.isValid(postid)) {
-//             return NextResponse.json({ error: "Invalid postid" }, { status: 400 });
-//         }
-//         if (!userid) {
-//             return NextResponse.json({ error: "userid is required" }, { status: 400 });
-//         }
-//         if (!mongoose.Types.ObjectId.isValid(userid)) {
-//             return NextResponse.json({ error: "Invalid userid" }, { status: 400 });
-//         }
-//         if (!text) {
-//             return NextResponse.json({ error: "text is required" }, { status: 400 });
-//         }
-//         // Determine parent and depth safely
-//         let depth = 0;
-//         let parentRef = null;
-//         if (parentid) {
-//             if (!mongoose.Types.ObjectId.isValid(parentid)) {
-//                 return NextResponse.json({ error: "Invalid parentid" }, { status: 400 });
-//             }
-//             const parent = await Comment.findById(parentid).select('post depth');
-//             if (!parent) {
-//                 return NextResponse.json({ error: "Parent comment not found" }, { status: 404 });
-//             }
-//             if (String(parent.post) !== String(postid)) {
-//                 return NextResponse.json({ error: "Parent comment does not belong to the same post" }, { status: 400 });
-//             }
-//             if (parent.depth >= 5) {
-//                 return NextResponse.json({ error: "Maximum reply depth reached" }, { status: 400 });
-//             }
-//             depth = parent.depth + 1;
-//             parentRef = parentid;
-//         }
-
-//         const comment = new Comment({
-//             post: postid,
-//             user: userid,
-//             text,
-//             parent: parentRef,
-//             depth,
-//             comId: comId,
-//         });
-//         await comment.save();
-//         return NextResponse.json({ comment }, { status: 200 });
-//     } catch (error) {
-//         return NextResponse.json({ error: error.message }, { status: 500 });
-//     }
-// }
-
-// export const DELETE = async (req) => {
-//     try {
-//         await connectDb();
-//         const { commentid } = await req.json();
-
-//         if (!commentid) {
-//             return NextResponse.json({ error: "commentid is required" }, { status: 400 });
-//         }
-//         if (!mongoose.Types.ObjectId.isValid(commentid)) {
-//             return NextResponse.json({ error: "Invalid commentid" }, { status: 400 });
-//         }
-//         const comment = await Comment.findById(commentid)
-//         if (!comment) {
-//             return NextResponse.json({ error: "Comment not found" }, { status: 404 });
-//         }
-//         comment.isDeleted = true;
-//         await comment.save();
-//         return NextResponse.json({ comment }, { status: 200 });
-//     } catch (error) {
-//         return NextResponse.json({ error: error.message }, { status: 500 });
-//     }
-// }
-// export const PUT = async (req) => {
-//     try {
-//         await connectDb();
-//         const { commentid , text} = await req.json();
-//         if (!commentid) {
-//             return NextResponse.json({ error: "commentid is required" }, { status: 400 });
-//         }
-//         if (!mongoose.Types.ObjectId.isValid(commentid)) {
-//             return NextResponse.json({ error: "Invalid commentid" }, { status: 400 });
-//         }
-//         const comment = await Comment.findById(commentid);
-//         if (!comment) {
-//             return NextResponse.json({ error: "Comment not found" }, { status: 404 });
-//         }
-//         comment.text = text;
-//         await comment.save();
-//         return NextResponse.json({ comment }, { status: 200 });
-//     } catch (error) {
-//         return NextResponse.json({ error: error.message }, { status: 500 });
-//     }
-// }
-
+// === API TO POST Comment===>
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -130,5 +31,35 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             error: 'Failed to create comment'
         }, { status: 500 })
+    }
+}
+
+// === API TO GET Vedio specified Comments===>
+export async function GET(request: NextRequest) {
+    try {
+        await connectToDatabase();
+        const { searchParams } = new URL(request.url);
+        const videoId = searchParams.get('videoId');
+
+        if (!videoId) {
+            return NextResponse.json({ error: "videoId query parameter is required" }, { status: 400 });
+        }
+        if (!mongoose.Types.ObjectId.isValid(videoId)) {
+            return NextResponse.json({ error: "Invalid videoId format" }, { status: 400 });
+        }
+
+        // DEBUGGING: Add a log to see what we're querying for
+        console.log(`Searching for comments with videoId: ${videoId}`);
+
+        // THE FIX: Try without populate first to see if the query works
+        const comments = await Comment.find({ videoId: videoId })
+            .sort({ createdAt: -1 });
+
+        return NextResponse.json(comments, { status: 200 });
+    } catch (error) {
+        console.error("Failed to fetch comments:", error); 
+        return NextResponse.json({
+            error: 'Failed to fetch comments'
+        }, { status: 500 });
     }
 }

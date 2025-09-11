@@ -12,6 +12,18 @@ interface Transformation {
     quality: number;
 }
 
+interface IComment {
+    _id: string;
+    review: string;
+    userId: {
+        _id: string;
+        name: string;
+        profileImageURL: string;
+        email: string;
+    };
+    createdAt: string;
+}
+
 interface VideoData {
     _id: string;
     title: string;
@@ -42,6 +54,30 @@ export default function VideoFeed() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<UserData | null>(null);
+    const [comments, setComments] = useState<Record<string, IComment[]>>({});
+
+    const fetchComments = async (videoId: string) => {
+        try {
+            console.log(`Fetching comments for videoId: ${videoId}`); // LOG 1: Check if function is called
+            const response = await axios.get(`/api/auth/comment?videoId=${videoId}`);
+
+            // THE FIX: Log the actual data you received from the API
+            console.log('API Response Data:', response.data); // LOG 2: See what the API returned
+
+            setComments(prev => ({
+                ...prev,
+                [videoId]: response.data
+            }));
+        } catch (error) {
+            // LOG 3: This will run if the API call fails
+            console.error("Failed to fetch comments:", error);
+            setComments(prev => ({
+                ...prev,
+                [videoId]: [] // Set to empty array on error
+            }));
+        }
+    };
+
     //-------- Specified code block for review functionality begins here-------------------
     const [activeReviews, setActiveReviews] = useState<Set<string>>(new Set());
     const [reviewTexts, setReviewTexts] = useState<Record<string, string>>({});
@@ -57,6 +93,8 @@ export default function VideoFeed() {
                 });
             } else {
                 newSet.add(videoId);
+                fetchComments(videoId);
+
             }
             return newSet;
         });
@@ -79,15 +117,15 @@ export default function VideoFeed() {
                 review: reviewText,
                 userId: user?._id
             });
+
+            // Clear the input text
             setReviewTexts(prev => {
                 const { [videoId]: _, ...rest } = prev;
                 return rest;
             });
-            setActiveReviews(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(videoId);
-                return newSet;
-            });
+
+            // Refresh the comments list to show the new one
+            await fetchComments(videoId);
 
             console.log('Review submitted successfully');
         } catch (error) {
@@ -197,7 +235,7 @@ export default function VideoFeed() {
                                 key={video._id}
                                 className="bg-gray-900 overflow-hidden duration-300"
                             >
-                                {/* Video Container */}
+                                {/* ... existing video content ... */}
                                 <div className="relative">
                                     {/* User Info display */}
                                     <div className="flex items-center gap-4 p-6">
@@ -298,7 +336,6 @@ export default function VideoFeed() {
                                                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                                                 </svg>
                                             </div>
-                                            {/* <span className="text-sm font-medium">Post a Review</span> */}
                                             <span className="text-sm font-medium">
                                                 {activeReviews.has(video._id) ? 'Cancel Review' : 'Post a Review'}
                                             </span>
@@ -329,7 +366,7 @@ export default function VideoFeed() {
                                         </button>
                                     </div>
                                 </div>
-                                {/* Review Input Section - Add this new section */}
+                                {/* Review Input Section */}
                                 {activeReviews.has(video._id) && (
                                     <div className="px-6 py-4 border-t border-gray-700 bg-gray-800">
                                         <div className="flex items-start space-x-3">
@@ -371,6 +408,39 @@ export default function VideoFeed() {
                                                         </button>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        {/* === COMMENTS Display === */}
+                                        <div className="mt-8 pt-6 border-t border-gray-700">
+                                            <h3 className="text-lg font-semibold text-white mb-4 ">
+                                                Comments ({comments[video._id]?.length || 0})
+                                            </h3>
+                                            <div className="space-y-4 max-h-72 overflow-y-auto pr-2 no-scrollbar">
+                                                {comments[video._id] && comments[video._id].length > 0 ? (
+                                                    comments[video._id].map((comment) => (
+                                                        <div key={comment._id} className="flex items-start space-x-3">
+                                                            <Image
+                                                                className="rounded-full size-8"
+                                                                src={comment.userId.profileImageURL || Avatar}
+                                                                alt={comment.userId.name || 'user'}
+                                                                width={32}
+                                                                height={32}
+                                                            />
+                                                            <div className="flex-1 bg-gray-900 p-3 rounded-lg">
+                                                                <span className="font-semibold text-lime-400 text-sm">
+                                                                    {comment.userId.name || comment.userId.email}
+                                                                </span>
+                                                                <p className="text-white text-sm mt-1">{comment.review}</p>
+                                                                <span className="text-xs text-gray-400 mt-2 block">
+                                                                    {formatDate(comment.createdAt)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-gray-400 text-sm">No comments yet. Be the first to comment!</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
