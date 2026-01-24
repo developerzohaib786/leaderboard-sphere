@@ -6,17 +6,70 @@ import { Phone, Video, Send } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useSocket } from '@/context/SocketContext';
+import { useSession } from 'next-auth/react';
+import { fetchRoomMessages } from '@/lib/api-messages';
+
+interface MessageData {
+    message: string;
+    userName: string;
+    userImage: string;
+    userId: string;
+}
+
+// Generate or retrieve anonymous user ID
+const getOrCreateUserId = () => {
+    if (typeof window === 'undefined') return '';
+
+    let userId = localStorage.getItem('anonymousUserId');
+    if (!userId) {
+        userId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('anonymousUserId', userId);
+    }
+    return userId;
+};
 
 export default function Chat3Page() {
+    const { data: session } = useSession();
+    const [currentUserId, setCurrentUserId] = useState('');
+    const [isClientReady, setIsClientReady] = useState(false);
+
+    useEffect(() => {
+        // Set user ID on client side
+        const userId = getOrCreateUserId();
+        setCurrentUserId(userId);
+        setIsClientReady(true);
+        console.log('Current user ID:', userId);
+    }, []);
+
     const user = {
-        name: 'Mike Johnson',
-        image: 'https://avatar.iran.liara.run/public/44',
+        name: session?.user?.name || 'Anonymous',
+        image: session?.user?.image || 'https://avatar.iran.liara.run/public/44',
+        id: session?.user?.id || currentUserId,
     };
 
     const { sendMessage, messages, joinRoom, leaveRoom } = useSocket();
     const [message, setMessage] = useState('');
-    const [roomMessages, setRoomMessages] = useState<string[]>([]);
+    const [roomMessages, setRoomMessages] = useState<MessageData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const room = 'room3';
+
+    // Fetch messages from database on component mount
+    useEffect(() => {
+        const loadMessages = async () => {
+            setIsLoading(true);
+            const data = await fetchRoomMessages(room);
+            if (data.success) {
+                setRoomMessages(data.messages);
+                console.log(`Loaded ${data.count} messages from database for ${room}`);
+            }
+            setIsLoading(false);
+        };
+
+        // Only load messages after client is ready with userId
+        if (isClientReady) {
+            loadMessages();
+        }
+    }, [room, isClientReady]);
 
     useEffect(() => {
         joinRoom(room);
@@ -25,17 +78,21 @@ export default function Chat3Page() {
         };
     }, [joinRoom, leaveRoom]);
 
-    // Sync messages from context to local state
+    // Sync messages from context to local state (for real-time updates)
     useEffect(() => {
         if (messages[room]) {
-            setRoomMessages(messages[room]);
+            setRoomMessages(prevMessages => {
+                // Merge database messages with new socket messages
+                const existingIds = new Set(prevMessages.map((_, idx) => idx));
+                return [...prevMessages, ...messages[room].filter((_, idx) => !existingIds.has(idx))];
+            });
             console.log(`Room 3 messages updated:`, messages[room]);
         }
     }, [messages]);
 
     const handleSendMessage = () => {
-        if (message.trim()) {
-            sendMessage(message, room);
+        if (message.trim() && user.id) {
+            sendMessage(message, room, user.name, user.image, user.id);
             setMessage('');
         }
     };
@@ -70,7 +127,9 @@ export default function Chat3Page() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                {roomMessages.length === 0 ? (
+                {isLoading ? (
+                    <div className="text-center text-gray-400 mt-4">Loading messages...</div>
+                ) : roomMessages.length === 0 ? (
                     <div className="text-center text-gray-400 mt-4">No messages yet. Start chatting!</div>
                 ) : (
                     roomMessages.map((msg, index) => {
