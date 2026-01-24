@@ -6,46 +6,17 @@ import { Phone, Video, Send } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useSocket } from '@/context/SocketContext';
-import { useSession } from 'next-auth/react';
 
-interface MessageData {
-    message: string;
-    userName: string;
-    userImage: string;
-    userId: string;
-}
-
-// Generate or retrieve anonymous user ID
-const getOrCreateUserId = () => {
-    if (typeof window === 'undefined') return '';
-
-    let userId = localStorage.getItem('anonymousUserId');
-    if (!userId) {
-        userId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        localStorage.setItem('anonymousUserId', userId);
-    }
-    return userId;
-};
-
-export default function ChatPage() {
-    const { data: session } = useSession();
-    const [currentUserId, setCurrentUserId] = useState('');
-
+export default function Chat3Page() {
     const user = {
-        name: session?.user?.name || 'Anonymous',
-        image: session?.user?.image || 'https://avatar.iran.liara.run/public/1',
-        id: session?.user?.id || currentUserId,
+        name: 'Mike Johnson',
+        image: 'https://avatar.iran.liara.run/public/44',
     };
 
     const { sendMessage, messages, joinRoom, leaveRoom } = useSocket();
     const [message, setMessage] = useState('');
-    const [roomMessages, setRoomMessages] = useState<MessageData[]>([]);
-    const room = 'room1';
-
-    useEffect(() => {
-        // Set user ID on client side
-        setCurrentUserId(getOrCreateUserId());
-    }, []);
+    const [roomMessages, setRoomMessages] = useState<string[]>([]);
+    const room = 'room3';
 
     useEffect(() => {
         joinRoom(room);
@@ -58,13 +29,13 @@ export default function ChatPage() {
     useEffect(() => {
         if (messages[room]) {
             setRoomMessages(messages[room]);
-            console.log(`Room 1 messages updated:`, messages[room]);
+            console.log(`Room 3 messages updated:`, messages[room]);
         }
     }, [messages]);
 
     const handleSendMessage = () => {
-        if (message.trim() && user.id) {
-            sendMessage(message, room, user.name, user.image, user.id);
+        if (message.trim()) {
+            sendMessage(message, room);
             setMessage('');
         }
     };
@@ -82,7 +53,7 @@ export default function ChatPage() {
                             className="rounded-full"
                         />
                         <div>
-                            <h2 className="font-semibold text-lg">{user.name} - Room 1</h2>
+                            <h2 className="font-semibold text-lg">{user.name} - Room 3</h2>
                             <p className="text-sm text-gray-500">Online</p>
                         </div>
                     </div>
@@ -118,7 +89,7 @@ export default function ChatPage() {
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="font-semibold text-sm">{msg.userName || 'Anonymous'}</span>
                                     </div>
-                                    <div className={`inline-block p-3 rounded-lg shadow break-words ${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-white'}`}>
+                                    <div className={`inline-block p-3 rounded-lg shadow break-words ${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-green-100'}`}>
                                         {msg.message}
                                     </div>
                                 </div>
