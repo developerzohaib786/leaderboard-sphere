@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { useSession } from 'next-auth/react';
 import { fetchRoomMessages } from '@/lib/api-messages';
+import defaultUserImg from '@/public/default-image.png';
+import GeneralImg from '@/public/discussion.jpg';
 
 interface MessageData {
     message: string;
@@ -43,7 +45,7 @@ export default function ChatPage() {
 
     const user = {
         name: session?.user?.name || 'Anonymous',
-        image: session?.user?.image || 'https://avatar.iran.liara.run/public/1',
+        image: session?.user?.image || defaultUserImg.src,
         id: session?.user?.id || currentUserId,
     };
 
@@ -103,15 +105,15 @@ export default function ChatPage() {
                 <div className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
                         <Image
-                            src={user.image}
-                            alt={user.name}
+                            src={GeneralImg}
+                            alt="General Room"
                             width={48}
                             height={48}
                             className="rounded-full"
                         />
                         <div>
-                            <h2 className="font-semibold text-lg">{user.name} - Room 1</h2>
-                            <p className="text-sm text-gray-500">Online</p>
+                            <h2 className="font-semibold text-lg">General Room</h2>
+                            <p className="text-sm text-gray-500">A place for general discussions and community chat.</p>
                         </div>
                     </div>
 
