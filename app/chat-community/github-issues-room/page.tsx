@@ -8,6 +8,9 @@ import { useState, useEffect } from 'react';
 import { useSocket } from '@/context/SocketContext';
 import { useSession } from 'next-auth/react';
 import { fetchRoomMessages } from '@/lib/api-messages';
+import defaultUserImg from '@/public/default-image.png';
+import GithubImg from '@/public/github.png';
+
 
 interface MessageData {
     message: string;
@@ -28,7 +31,7 @@ const getOrCreateUserId = () => {
     return userId;
 };
 
-export default function Chat3Page() {
+export default function Chat2Page() {
     const { data: session } = useSession();
     const [currentUserId, setCurrentUserId] = useState('');
     const [isClientReady, setIsClientReady] = useState(false);
@@ -43,7 +46,7 @@ export default function Chat3Page() {
 
     const user = {
         name: session?.user?.name || 'Anonymous',
-        image: session?.user?.image || 'https://avatar.iran.liara.run/public/44',
+        image: session?.user?.image || defaultUserImg.src,
         id: session?.user?.id || currentUserId,
     };
 
@@ -51,7 +54,7 @@ export default function Chat3Page() {
     const [message, setMessage] = useState('');
     const [roomMessages, setRoomMessages] = useState<MessageData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const room = 'room3';
+    const room = 'room2';
 
     // Fetch messages from database on component mount
     useEffect(() => {
@@ -86,7 +89,7 @@ export default function Chat3Page() {
                 const existingIds = new Set(prevMessages.map((_, idx) => idx));
                 return [...prevMessages, ...messages[room].filter((_, idx) => !existingIds.has(idx))];
             });
-            console.log(`Room 3 messages updated:`, messages[room]);
+            console.log(`Room 2 messages updated:`, messages[room]);
         }
     }, [messages]);
 
@@ -103,15 +106,15 @@ export default function Chat3Page() {
                 <div className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
                         <Image
-                            src={user.image}
-                            alt={user.name}
+                            src={GithubImg}
+                            alt="GitHub Issues Room"
                             width={48}
                             height={48}
                             className="rounded-full"
                         />
                         <div>
-                            <h2 className="font-semibold text-lg">{user.name} - Room 3</h2>
-                            <p className="text-sm text-gray-500">Online</p>
+                            <h2 className="font-semibold text-lg">GitHub Issues Room</h2>
+                            <p className="text-sm text-gray-500">Discuss GitHub issues and collaborate on solutions.</p>
                         </div>
                     </div>
 
@@ -148,7 +151,7 @@ export default function Chat3Page() {
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="font-semibold text-sm">{msg.userName || 'Anonymous'}</span>
                                     </div>
-                                    <div className={`inline-block p-3 rounded-lg shadow break-words ${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-green-100'}`}>
+                                    <div className={`inline-block p-3 rounded-lg shadow break-words ${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-blue-100'}`}>
                                         {msg.message}
                                     </div>
                                 </div>
