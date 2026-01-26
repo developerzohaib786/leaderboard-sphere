@@ -14,10 +14,17 @@ export const fetchRoomMessages = async (roomId: string) => {
             return {
                 success: true,
                 messages: data.messages.map((msg: any) => ({
+                    id: msg.id,
                     message: msg.text,
                     userName: msg.userName,
                     userImage: msg.userImage,
                     userId: msg.userId,
+                    imageUrl: msg.imageUrl,
+                    videoUrl: msg.videoUrl,
+                    rawFileUrl: msg.rawFileUrl,
+                    replyToId: msg.replyToId,
+                    replyToText: msg.replyToText,
+                    createdAt: msg.createdAt,
                 })),
                 count: data.count,
             };
