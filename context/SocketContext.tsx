@@ -8,14 +8,21 @@ interface SocketContextProps {
 }
 
 interface MessageData {
+    id?: string;
     message: string;
     userName: string;
     userImage: string;
     userId: string;
+    imageUrl?: string;
+    videoUrl?: string;
+    rawFileUrl?: string;
+    replyToId?: string;
+    replyToText?: string;
+    createdAt?: string;
 }
 
 interface iSocketContext {
-    sendMessage: (msg: string, room: string, userName: string, userImage: string, userId: string) => any;
+    sendMessage: (msg: string, room: string, userName: string, userImage: string, userId: string, imageUrl?: string, videoUrl?: string, rawFileUrl?: string, replyToId?: string, replyToText?: string) => any;
     messages: Record<string, MessageData[]>;
     joinRoom: (room: string) => void;
     leaveRoom: (room: string) => void;
@@ -43,10 +50,10 @@ export const SocketProvider: React.FC<SocketContextProps> = ({ children }) => {
     const [currentRoom, setCurrentRoom] = useState<string | null>(null);
 
 
-    const sendMessage: iSocketContext["sendMessage"] = useCallback((msg: string, room: string, userName: string, userImage: string, userId: string) => {
+    const sendMessage: iSocketContext["sendMessage"] = useCallback((msg: string, room: string, userName: string, userImage: string, userId: string, imageUrl?: string, videoUrl?: string, rawFileUrl?: string, replyToId?: string, replyToText?: string) => {
         console.log('Sending message:', msg, 'to room:', room, 'from:', userName, 'userId:', userId);
         if (socket) {
-            socket.emit('event:message', { message: msg, room, userName, userImage, userId });
+            socket.emit('event:message', { message: msg, room, userName, userImage, userId, imageUrl, videoUrl, rawFileUrl, replyToId, replyToText });
         }
     }, [socket]);
 
@@ -69,10 +76,10 @@ export const SocketProvider: React.FC<SocketContextProps> = ({ children }) => {
 
     const onMessageReceived = useCallback((msg: string) => {
         console.log('Message received from server:', msg);
-        const { message, room, userName, userImage, userId } = JSON.parse(msg) as { message: string, room: string, userName: string, userImage: string, userId: string };
+        const { message, room, userName, userImage, userId, imageUrl, videoUrl, rawFileUrl, replyToId, replyToText } = JSON.parse(msg) as MessageData & { room: string };
         setMessages((prevMessages) => ({
             ...prevMessages,
-            [room]: [...(prevMessages[room] || []), { message, userName, userImage, userId }]
+            [room]: [...(prevMessages[room] || []), { message, userName, userImage, userId, imageUrl, videoUrl, rawFileUrl, replyToId, replyToText }]
         }));
     }, []);
 
