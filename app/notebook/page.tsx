@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface Document {
   id: string;
@@ -76,9 +77,19 @@ export default function NotebookPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInputMessage("");
 
+    // Add a loading message
+    const loadingId = (Date.now() + 1).toString();
+    const loadingMessage: Message = {
+      id: loadingId,
+      content: "Thinking...",
+      sender: "assistant",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, loadingMessage]);
+
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_RAG_VECTOR_DB_MICROSERVICE_URL}/chat?question=${encodeURIComponent(inputMessage)}`
+        `http://localhost:5003/chat?question=${encodeURIComponent(inputMessage)}`
       );
 
       if (!response.ok) {
@@ -88,23 +99,32 @@ export default function NotebookPage() {
       const data = await response.json();
       console.log("Chat API Response:", data);
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.message,
-        sender: "assistant",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
+      // Replace loading message with actual response
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === loadingId
+            ? {
+                ...msg,
+                content: data.message,
+                timestamp: new Date(),
+              }
+            : msg
+        )
+      );
     } catch (error) {
       console.error("Chat error:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "Sorry, something went wrong. Please try again.",
-        sender: "assistant",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Replace loading message with error
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === loadingId
+            ? {
+                ...msg,
+                content: "Sorry, something went wrong. Please try again.",
+                timestamp: new Date(),
+              }
+            : msg
+        )
+      );
     }
   };
 
@@ -233,7 +253,11 @@ export default function NotebookPage() {
                       : "bg-gray-700 rounded-bl-md"
                   }`}
                 >
-                  <p>{msg.content}</p>
+                  {msg.sender === "assistant" ? (
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  ) : (
+                    <p>{msg.content}</p>
+                  )}
                   <p className="text-xs text-gray-300 mt-2">
                     {msg.timestamp.toLocaleTimeString()}
                   </p>
