@@ -15,12 +15,11 @@ export default function Navbar({ isLoggedIn, onLogout }: NavbarProps) {
   <section className="relative overflow-x-hidden">
       <nav className="bg-white  backdrop-blur-md text-black shadow-md sticky z-1000 w-screen">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
-        {/* Logo */}
+
         <Link href="/" className="text-xl font-bold tracking-wide">
           CapReel Pro
         </Link>
 
-        {/* Mid Links */}
         <div className="hidden md:flex space-x-6">
           <Link href="/" className="hover:text-gray-600 transition font-medium">
             Home
@@ -30,7 +29,6 @@ export default function Navbar({ isLoggedIn, onLogout }: NavbarProps) {
           </Link>
         </div>
 
-        {/* Right Side (Logout) */}
         <div>
           {isLoggedIn && (
             <button
@@ -42,7 +40,6 @@ export default function Navbar({ isLoggedIn, onLogout }: NavbarProps) {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden flex flex-col space-y-1 ml-4"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -53,7 +50,6 @@ export default function Navbar({ isLoggedIn, onLogout }: NavbarProps) {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden bg-blue-700 px-4 py-2 space-y-2">
           <Link

@@ -58,27 +58,24 @@ export default function VideoFeed() {
 
     const fetchComments = async (videoId: string) => {
         try {
-            console.log(`Fetching comments for videoId: ${videoId}`); // LOG 1: Check if function is called
+            console.log(`Fetching comments for videoId: ${videoId}`); 
             const response = await axios.get(`/api/auth/comment?videoId=${videoId}`);
 
-            // THE FIX: Log the actual data you received from the API
-            console.log('API Response Data:', response.data); // LOG 2: See what the API returned
+            console.log('API Response Data:', response.data); 
 
             setComments(prev => ({
                 ...prev,
                 [videoId]: response.data
             }));
         } catch (error) {
-            // LOG 3: This will run if the API call fails
             console.error("Failed to fetch comments:", error);
             setComments(prev => ({
                 ...prev,
-                [videoId]: [] // Set to empty array on error
+                [videoId]: [] 
             }));
         }
     };
 
-    //-------- Specified code block for review functionality begins here-------------------
     const [activeReviews, setActiveReviews] = useState<Set<string>>(new Set());
     const [reviewTexts, setReviewTexts] = useState<Record<string, string>>({});
 
@@ -118,13 +115,11 @@ export default function VideoFeed() {
                 userId: user?._id
             });
 
-            // Clear the input text
             setReviewTexts(prev => {
                 const { [videoId]: _, ...rest } = prev;
                 return rest;
             });
 
-            // Refresh the comments list to show the new one
             await fetchComments(videoId);
 
             console.log('Review submitted successfully');
@@ -133,7 +128,6 @@ export default function VideoFeed() {
         }
     };
 
-    // -------------------------- specified code block for review functionality ends here -----------------------
     useEffect(() => {
         const fetchUserData = async () => {
             try {
@@ -197,7 +191,6 @@ export default function VideoFeed() {
                         />
                     </div>
 
-                    {/* Text content stacked in column */}
                     <div className="flex flex-col">
                         <span className="font-semibold text-white">Name</span>
                         <span className="text-sm text-white">Bio</span>
@@ -235,9 +228,7 @@ export default function VideoFeed() {
                                 key={video._id}
                                 className="bg-gray-900 overflow-hidden duration-300"
                             >
-                                {/* ... existing video content ... */}
                                 <div className="relative">
-                                    {/* User Info display */}
                                     <div className="flex items-center gap-4 p-6">
                                         <div>
                                             <Image
@@ -248,14 +239,12 @@ export default function VideoFeed() {
                                             />
                                         </div>
 
-                                        {/* Text content stacked in column */}
                                         <div className="flex flex-col">
                                             <span className="font-semibold text-lime-400">{user?.Name ? user.Name : (user?.email)}</span>
                                             <span className={twMerge("text-sm text-white", !user?.bio && 'hidden')}>{user?.bio}</span>
                                             <span className="text-white">Posted: {formatDate(video.createdAt)}</span>
                                         </div>
                                     </div>
-                                    {/* Video */}
                                     <div className="relative w-full bg-black">
                                         <video
                                             controls={video.controls}
@@ -267,21 +256,18 @@ export default function VideoFeed() {
                                             Your browser does not support the video tag.
                                         </video>
 
-                                        {/* Overlay Content on Video (Optional) */}
                                         <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-lime-400 px-3 py-1">
                                             <span className="text-sm font-medium">HD</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Title */}
                                 <div className="px-2 pt-1">
                                     <h2 className="text-2xl font-bold text-lime-400">
                                         {video.title}
                                     </h2>
                                 </div>
 
-                                {/* Description and Metadata */}
                                 <div className="px-2 pb-1">
                                     <div className="mb-4">
                                         <p className="text-white text-base leading-relaxed">
@@ -290,10 +276,8 @@ export default function VideoFeed() {
                                     </div>
 
                                 </div>
-                                {/* Interaction Bar */}
                                 <div className="px-6 py-4 border-t border-gray-700">
                                     <div className="flex items-center justify-between">
-                                        {/* Star Button */}
                                         <button className="flex items-center space-x-2 text-white hover:text-lime-400 transition-colors duration-200 group">
                                             <div className="p-2 rounded-full group-hover:bg-gray-800 transition-colors duration-200">
                                                 <svg
@@ -314,7 +298,6 @@ export default function VideoFeed() {
                                             <span className="text-sm font-medium">Star</span>
                                         </button>
 
-                                        {/* Review Button */}
                                         <button onClick={() => toggleReviewInput(video._id)}
                                             className={twMerge(
                                                 "flex items-center space-x-2 text-white hover:text-lime-400 transition-colors duration-200 group",
@@ -340,7 +323,6 @@ export default function VideoFeed() {
                                                 {activeReviews.has(video._id) ? 'Cancel Review' : 'Post a Review'}
                                             </span>
                                         </button>
-                                        {/* Share Button */}
                                         <button className="flex items-center space-x-2 text-white hover:text-lime-400 transition-colors duration-200 group">
                                             <div className="p-2 rounded-full group-hover:bg-gray-800 transition-colors duration-200">
                                                 <svg
@@ -366,7 +348,6 @@ export default function VideoFeed() {
                                         </button>
                                     </div>
                                 </div>
-                                {/* Review Input Section */}
                                 {activeReviews.has(video._id) && (
                                     <div className="px-6 py-4 border-t border-gray-700 bg-gray-800">
                                         <div className="flex items-start space-x-3">
@@ -411,7 +392,6 @@ export default function VideoFeed() {
                                             </div>
                                         </div>
 
-                                        {/* === COMMENTS Display === */}
                                         <div className="mt-8 pt-6 border-t border-gray-700">
                                             <h3 className="text-lg font-semibold text-white mb-4 ">
                                                 Comments ({comments[video._id]?.length || 0})

@@ -8,6 +8,7 @@ export async function GET() {
         publicKey: process.env.NEXT_PUBLIC_PUBLIC_KEY as string,
 
     })
+    
     return Response.json({ 
         ...authParameters, 
         publicKey: process.env.NEXT_PUBLIC_PUBLIC_KEY 
