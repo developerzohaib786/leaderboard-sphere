@@ -8,6 +8,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
     try {
+        const session=await getServerSession(authOptions);
+        if(!session){
+            return NextResponse.json({
+                error:'Unauthorized action'
+            },{status:401})
+        };
+        
         await connectToDatabase();
         const vedios= await Vedio.find().sort({createdAt:-1}).lean();
         if(!vedios || vedios.length===0){
@@ -32,6 +39,7 @@ export async function POST(request:NextRequest){
                 error:'Unauthorized action'
             },{status:401})
         };
+
         await connectToDatabase();
         const body: ivedio=await request.json();
         if(
