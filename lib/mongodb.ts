@@ -1,32 +1,41 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const MONGODB_URL=process.env.MONGODB_URL!;
+const MONGODB_URL = (() => {
+  const url = process.env.MONGODB_URL;
+  if (!url) throw new Error("Please define MONGODB_URL in your env file.");
+  return url;
+})();
 
-if(!MONGODB_URL){
-    throw new Error("⚠️Please define MONGODB_URL in your env file.")
-};
+let cache = global.mongoose;
 
-let cache=global.mongoose;
-
-if(!cache){
-    cache=global.mongoose={conn:null,promise:null};
+if (!cache) {
+  cache = global.mongoose = { conn: null, promise: null };
 }
 
-export async function connectToDatabase(){
-    if(cache.conn){
-        return cache.conn;
-    }
-    if(!cache.conn){
-        mongoose
-        .connect(MONGODB_URL)
-        .then(()=>{mongoose.connection})
-    }
+export async function connectToDatabase() {
+  if (cache.conn) return cache.conn;
 
-    try {
-        cache.conn= await cache.promise;
-    } catch (error) {
-        cache.promise=null;
-        throw error;
-    }
+  if (!cache.promise) {
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 10000,
+      // FORCE IPv4: This fixes the ECONNREFUSED issue in Node 18+ 
+      family: 4, 
+    };
 
+    cache.promise = mongoose.connect(MONGODB_URL, opts).then((mongoose) => {
+      console.log("✅ MongoDB Connected Successfully");
+      return mongoose;
+    });
+  }
+
+  try {
+    cache.conn = await cache.promise;
+  } catch (error) {
+    cache.promise = null;
+    console.error("❌ MongoDB Connection Error:", error);
+    throw error;
+  }
+
+  return cache.conn;
 }

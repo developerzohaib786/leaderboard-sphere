@@ -2,6 +2,9 @@
 
 import React, { useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import remarkGfm from "remark-gfm";
 
 interface Document {
   id: string;
@@ -10,11 +13,49 @@ interface Document {
   uploadedAt: Date;
 }
 
+interface ContextDoc {
+  pageContent: string;
+  metadata: {
+    source: string;
+    pdf?: any;
+    loc?: any;
+  };
+  id?: string;
+}
+
 interface Message {
   id: string;
   content: string;
   sender: "user" | "assistant";
   timestamp: Date;
+  context?: ContextDoc[];
+}
+
+function ContextItem({ doc, index }: { doc: ContextDoc; index: number }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const filename = doc.metadata?.source?.split(/[\\/]/).pop() ?? "Unknown source";
+  const page = doc.metadata?.loc?.pageNumber ?? doc.metadata?.loc?.lines?.from ?? null;
+
+  return (
+    <div className="border border-gray-600 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 bg-gray-800 hover:bg-gray-750 text-left transition-colors"
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="text-blue-400 font-mono text-xs shrink-0">#{index + 1}</span>
+          <span className="text-sm text-gray-300 truncate">{filename}</span>
+          {page && <span className="text-xs text-gray-500 shrink-0">· p.{page}</span>}
+        </span>
+        <span className="text-gray-400 text-xs ml-2">{expanded ? "▲" : "▼"}</span>
+      </button>
+      {expanded && (
+        <div className="px-3 py-3 bg-gray-900 border-t border-gray-700">
+          <p className="text-xs text-gray-400 whitespace-pre-wrap leading-relaxed">{doc.pageContent}</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function NotebookPage() {
@@ -97,7 +138,7 @@ export default function NotebookPage() {
       }
 
       const data = await response.json();
-      console.log("Chat API Response:", data);
+      console.log("Chat API Response:", data); 
 
       // Replace loading message with actual response
       setMessages((prev) =>
@@ -107,6 +148,7 @@ export default function NotebookPage() {
                 ...msg,
                 content: data.message,
                 timestamp: new Date(),
+                context: data.context || [],
               }
             : msg
         )
@@ -254,13 +296,45 @@ export default function NotebookPage() {
                   }`}
                 >
                   {msg.sender === "assistant" ? (
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ node, className, children, ...props }: any) {
+                          const match = /language-(\w+)/.exec(className || "");
+                          const isInline = !match && !String(children).includes("\n");
+                          return !isInline && match ? (
+                            <SyntaxHighlighter
+                              style={oneDark}
+                              language={match[1]}
+                              PreTag="div"
+                              className="rounded-lg text-xs my-2"
+                              {...props}
+                            >
+                              {String(children).replace(/\n$/, "")}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code className="bg-gray-900 text-pink-400 px-1 py-0.5 rounded text-xs" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
                   ) : (
                     <p>{msg.content}</p>
                   )}
-                  <p className="text-xs text-gray-300 mt-2">
-                    {msg.timestamp.toLocaleTimeString()}
-                  </p>
+                  {msg.sender === "assistant" && msg.context && msg.context.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-gray-600">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Context from Vector Database</p>
+                      <div className="space-y-2">
+                        {msg.context.map((doc, i) => (
+                          <ContextItem key={doc.id ?? i} doc={doc} index={i} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
