@@ -9,6 +9,7 @@ export const fetchRoomMessages = async (roomId: string) => {
     try {
         const response = await fetch(`${API_CONFIG.BACKEND_URL}${API_CONFIG.MESSAGES_API}/room/${roomId}`);
         const data = await response.json();
+        console.log('Fetched messages from API:', data);
 
         if (data.success && data.messages) {
             return {

@@ -38,10 +38,31 @@ const getOrCreateUserId = () => {
     return userId;
 };
 
+const renderMessageText = (text: string, isOwnMessage: boolean) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) =>
+        urlRegex.test(part) ? (
+            <a
+                key={i}
+                href={part}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`underline break-all ${isOwnMessage ? 'text-blue-100 hover:text-white' : 'text-blue-600 hover:text-blue-800'}`}
+            >
+                {part}
+            </a>
+        ) : (
+            <span key={i}>{part}</span>
+        )
+    );
+};
+
 export default function ChatPage() {
     const { data: session } = useSession();
     const [currentUserId, setCurrentUserId] = useState('');
     const [isClientReady, setIsClientReady] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         // Set user ID on client side
@@ -148,6 +169,22 @@ export default function ChatPage() {
         }
     };
 
+    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    const el = textareaRef.current;
+    if (el) {
+        el.style.height = 'auto';
+        el.style.height = `${Math.min(el.scrollHeight, 150)}px`;
+    }
+};
+
+const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+    }
+};
+
     const clearFile = (type: 'image' | 'video' | 'raw') => {
         if (type === 'image') setImageUrl('');
         else if (type === 'video') setVideoUrl('');
@@ -155,6 +192,9 @@ export default function ChatPage() {
     };
 
     const handleSendMessage = () => {
+        if (textareaRef.current) {
+    textareaRef.current.style.height = 'auto';
+}
         if ((message.trim() || imageUrl || videoUrl || rawFileUrl) && user.id) {
             sendMessage(
                 message || '(sent a file)',
@@ -194,7 +234,7 @@ export default function ChatPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-end gap-2">
                         <Button variant="ghost" size="icon" className="rounded-full">
                             <Phone className="h-5 w-5" />
                         </Button>
@@ -288,9 +328,9 @@ export default function ChatPage() {
 
                                         {/* Message text - display below media */}
                                         {msg.message && msg.message !== '(sent a file)' && (
-                                            <div className="p-3 break-words">
-                                                {msg.message}
-                                            </div>
+                                            <div className="p-3 break-words whitespace-pre-wrap">
+    {renderMessageText(msg.message, isOwnMessage)}
+</div>
                                         )}
                                     </div>
 
@@ -388,14 +428,16 @@ export default function ChatPage() {
                     >
                         <Paperclip className="h-5 w-5" />
                     </Button>
-                    <Input
-                        type="text"
-                        placeholder="Type a message..."
-                        className="flex-1"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                    />
+                    <textarea
+    ref={textareaRef}
+    rows={1}
+    placeholder="Type a message..."
+    className="flex-1 resize-none overflow-hidden rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    style={{ minHeight: '40px', maxHeight: '150px' }}
+    value={message}
+    onChange={handleTextareaChange}
+    onKeyDown={handleKeyDown}
+/>
                     <Button size="icon" className="rounded-full" onClick={handleSendMessage} disabled={uploadingFile}>
                         <Send className="h-5 w-5" />
                     </Button>
