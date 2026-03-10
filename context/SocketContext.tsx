@@ -84,7 +84,8 @@ export const SocketProvider: React.FC<SocketContextProps> = ({ children }) => {
     }, []);
 
     useEffect(() => {
-        const _socket = io('http://localhost:3001');
+        const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+        const _socket = io(socketUrl);
         _socket.on('message', onMessageReceived);
 
         _socket.on('room:joined', ({ room }: { room: string }) => {
